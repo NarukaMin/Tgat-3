@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TGAT3">
+<title>ฝึกข้อสอบ TGAT3</title>
+<style>
+  :root { --p:#4f46e5; --p2:#7c3aed; --ok:#16a34a; --mid:#d97706; --no:#dc2626; }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body { font-family:-apple-system,'Sarabun','Segoe UI',Tahoma,sans-serif; background:#eef0f7; color:#222;
+    min-height:100vh; min-height:100dvh; touch-action:manipulation; line-height:1.55; }
+  .hidden { display:none !important; }
+  header { padding:calc(env(safe-area-inset-top) + 14px) 16px 14px; color:#fff; text-align:center;
+    background:linear-gradient(135deg,var(--p),var(--p2)); }
+  header h1 { font-size:1.25rem; }
+  header .sub { font-size:.8rem; opacity:.85; }
+  main { max-width:620px; margin:0 auto; padding:12px 12px calc(84px + env(safe-area-inset-bottom)); }
+  .panel { display:none; } .panel.active { display:block; }
+  .card { background:#fff; border-radius:18px; padding:16px; box-shadow:0 4px 16px rgba(0,0,0,.06); margin-bottom:12px; }
+  h3 { font-size:1.05rem; margin-bottom:4px; }
+  .small { font-size:.86rem; color:#777; }
+  .msg { margin-top:10px; font-size:.9rem; white-space:pre-line; word-break:break-word; }
+  .ok { color:var(--ok); } .err { color:var(--no); }
+  hr { border:none; border-top:1px dashed #ddd; margin:18px 0; }
+
+  .tabbar { position:fixed; left:0; right:0; bottom:0; z-index:20; display:flex; background:#fff;
+    border-top:1px solid #e5e5e5; padding-bottom:env(safe-area-inset-bottom); }
+  .tabbar button { flex:1; border:none; background:none; padding:8px 0 6px; font-family:inherit; font-size:.75rem;
+    color:#999; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .tabbar .ic { font-size:1.4rem; }
+  .tabbar button.active { color:var(--p); font-weight:bold; }
+
+  .btn { min-height:50px; padding:10px 12px; border:none; border-radius:14px; font-size:1rem; font-family:inherit;
+    color:#fff; font-weight:bold; width:100%; }
+  .btn:active { transform:scale(.97); }
+  .btn:disabled { opacity:.4; }
+  .btn-main { background:var(--p); }
+  .btn-light { background:#eef0f5; color:#333; font-weight:normal; }
+  .btn.sm { width:auto; flex:0 0 56px; }
+  .row2 { display:flex; gap:8px; margin-top:10px; }
+  textarea { width:100%; min-height:140px; padding:12px; border:1.5px solid #ccc; border-radius:12px; font-size:16px;
+    font-family:inherit; margin-top:10px; resize:vertical; }
+  textarea:focus { outline:none; border-color:var(--p); }
+  .optrow { display:flex; align-items:center; gap:8px; font-size:.92rem; color:#444; }
+  .optrow input { width:20px; height:20px; accent-color:var(--p); }
+
+  .set .st { font-weight:bold; font-size:1.08rem; }
+  .set .sd { font-size:.84rem; color:#777; margin-top:2px; }
+
+  /* หน้าทำข้อสอบ */
+  .topbar { position:sticky; top:0; z-index:15; display:flex; align-items:center; gap:10px; background:#fff;
+    padding:calc(env(safe-area-inset-top) + 8px) 12px 8px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .xbtn { width:42px; height:42px; border:none; border-radius:12px; background:#eef0f5; font-size:1.1rem; flex-shrink:0; }
+  .tb-mid { flex:1; text-align:center; }
+  .tb-mid b { display:block; font-size:1rem; }
+  .tb-mid span { font-size:.8rem; color:#888; }
+  .ex-wrap { max-width:620px; margin:0 auto; padding:12px 12px calc(90px + env(safe-area-inset-bottom)); }
+  .bottombar { position:fixed; left:0; right:0; bottom:0; z-index:15; background:#fff; border-top:1px solid #e5e5e5;
+    padding:8px 12px calc(8px + env(safe-area-inset-bottom)); }
+  .bottombar .in { max-width:620px; margin:0 auto; display:flex; gap:8px; }
+  .grid { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; background:#fff; border-radius:16px; padding:12px; margin-bottom:12px; }
+  .gb { min-height:42px; border:1.5px solid #ddd; background:#fff; border-radius:10px; font-family:inherit; font-size:.85rem; }
+  .gb.done { background:#e0e7ff; border-color:#a5b4fc; }
+  .gb.cur { border-color:var(--p); border-width:2.5px; font-weight:bold; }
+  .partlbl { font-size:.8rem; color:var(--p); font-weight:bold; margin:2px 0 8px; }
+  .passage { background:#fff; border-radius:16px; padding:12px 14px; margin-bottom:12px; border-left:5px solid var(--p); }
+  .passage summary { font-weight:bold; cursor:pointer; }
+  .passage .ptext { margin-top:8px; font-size:.97rem; color:#333; }
+  .passage.sm { border-left-width:3px; padding:8px 12px; font-size:.92rem; }
+  .qb { background:#fff; border-radius:16px; padding:14px; margin-bottom:12px; }
+  .qt { font-weight:bold; margin-bottom:8px; }
+  .qn { color:var(--p); }
+  .note { font-size:.8rem; color:#7c3aed; background:#f3efff; border-radius:8px; padding:4px 8px; display:inline-block; margin-bottom:8px; }
+  .chs { display:flex; flex-direction:column; gap:8px; }
+  .ch { display:flex; gap:10px; align-items:flex-start; text-align:left; min-height:52px; padding:10px 12px;
+    border:2px solid #e3e3e3; background:#fff; border-radius:14px; font-family:inherit; font-size:1rem; color:#222; line-height:1.45; }
+  .lt { flex-shrink:0; width:28px; height:28px; border-radius:50%; background:#eef0f5; display:inline-flex;
+    align-items:center; justify-content:center; font-weight:bold; font-size:.9rem; }
+  .ch.multi .lt { border-radius:7px; }
+  .ch.sel { border-color:var(--p); background:#eef2ff; }
+  .ch.sel .lt { background:var(--p); color:#fff; }
+
+  /* ผลสอบ */
+  .score-big { font-size:2.6rem; font-weight:bold; color:var(--p); text-align:center; }
+  table { width:100%; border-collapse:collapse; font-size:.88rem; margin-top:10px; }
+  td, th { padding:6px 4px; border-bottom:1px solid #eee; text-align:left; }
+  td:last-child, th:last-child { text-align:right; }
+  .ri { background:#fff; border-radius:16px; padding:14px; margin-bottom:12px; }
+  .onlywrong .ri.full { display:none; }
+  .rh { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .pill { font-size:.8rem; padding:3px 10px; border-radius:20px; color:#fff; font-weight:bold; }
+  .pill.g { background:var(--ok); } .pill.y { background:var(--mid); } .pill.r { background:var(--no); }
+  .rc { border:1.5px solid #e5e5e5; border-radius:12px; padding:8px 10px; margin-bottom:6px; }
+  .rc.best { border-color:var(--ok); background:#f0fdf4; }
+  .rc.part { border-color:#fcd34d; background:#fffbeb; }
+  .rc.mine { box-shadow:0 0 0 2.5px var(--p) inset; }
+  .rct { display:flex; gap:8px; align-items:flex-start; }
+  .rct > span:nth-child(2) { flex:1; }
+  .sc { font-weight:bold; font-size:.85rem; flex-shrink:0; }
+  .okc { color:var(--ok); } .noc { color:var(--no); }
+  .you { font-size:.8rem; color:var(--p); margin:3px 0 0 36px; font-weight:bold; }
+  .exp { font-size:.86rem; color:#555; margin:4px 0 0 36px; white-space:pre-line; }
+  .pairs { font-size:.88rem; background:#f8f8fc; border-radius:10px; padding:10px; margin-top:8px; }
+  .pairs + .exp { margin-left:0; margin-top:8px; }
+</style>
+</head>
+<body>
+
+<!-- ================= หน้าแรก ================= -->
+<div id="homeView">
+  <header>
+    <h1>📝 ฝึกข้อสอบ TGAT3</h1>
+    <div class="sub">สมรรถนะการทำงาน · แนว Mock</div>
+  </header>
+  <main>
+    <section class="panel active" id="lib">
+      <div class="card">
+        <label class="optrow"><input type="checkbox" id="optShuffle"> สลับลำดับตัวเลือกทุกครั้งที่เริ่มทำ</label>
+      </div>
+      <div id="libList"></div>
+    </section>
+
+    <section class="panel" id="add">
+      <div class="card">
+        <h3>เพิ่มชุดข้อสอบ</h3>
+        <p class="small">วาง JSON ของชุดข้อสอบ (จาก AI หรือไฟล์สำรอง) แล้วกดเพิ่ม</p>
+        <textarea id="inJson" placeholder='{"title":"ชุดที่ 2","situations":[...]}' autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+        <div class="row2"><button class="btn btn-main" id="btnImport">➕ เพิ่มชุดข้อสอบ</button></div>
+        <div class="row2">
+          <button class="btn btn-light" id="btnPaste">📋 วางจากคลิปบอร์ด</button>
+          <button class="btn btn-light" id="btnFile">📂 เลือกไฟล์</button>
+        </div>
+        <input type="file" id="fileIn" hidden>
+        <div class="msg" id="addMsg"></div>
+      </div>
+
+      <div class="card">
+        <h3>🤖 ให้ AI สร้างโจทย์ชุดใหม่</h3>
+        <p class="small">1) กดคัดลอกคำสั่ง → 2) วางในแชต AI → 3) คัดลอก JSON ที่ได้มาวางในช่องด้านบน</p>
+        <div class="row2"><button class="btn btn-main" id="btnPrompt">📋 คัดลอกคำสั่งสร้างโจทย์</button></div>
+        <textarea id="promptBox" class="hidden" readonly></textarea>
+      </div>
+
+      <div class="card">
+        <h3>💾 สำรองข้อมูล</h3>
+        <p class="small">สำรองชุดข้อสอบที่เพิ่มเอง ไว้ย้ายเครื่องหรือกันข้อมูลหาย (นำกลับมาด้วยช่องด้านบนได้เลย)</p>
+        <div class="row2"><button class="btn btn-light" id="btnBackup">💾 สำรองชุดที่เพิ่มเอง</button></div>
+      </div>
+    </section>
+  </main>
+  <nav class="tabbar">
+    <button class="active" data-tab="lib"><span class="ic">📚</span>ข้อสอบ</button>
+    <button data-tab="add"><span class="ic">➕</span>เพิ่มโจทย์</button>
+  </nav>
+</div>
+
+<!-- ================= หน้าทำข้อสอบ ================= -->
+<div id="examView" class="hidden">
+  <div class="topbar">
+    <button class="xbtn" id="btnExit" aria-label="ออก">✕</button>
+    <div class="tb-mid"><b id="qNum"></b><span id="timer"></span></div>
+    <button class="xbtn" id="btnGrid" aria-label="เลือกข้อ">☰</button>
+  </div>
+  <div class="ex-wrap">
+    <div id="grid" class="grid hidden"></div>
+    <div id="qArea"></div>
+  </div>
+  <div class="bottombar"><div class="in">
+    <button class="btn btn-light" id="btnPrev">◀ ก่อนหน้า</button>
+    <button class="btn btn-main" id="btnNext">ถัดไป ▶</button>
+  </div></div>
+</div>
+
+<!-- ================= หน้าผลสอบ ================= -->
+<div id="resultView" class="hidden">
+  <div class="topbar">
+    <button class="xbtn" id="btnResClose" aria-label="ปิด">✕</button>
+    <div class="tb-mid"><b>ผลสอบและเฉลย</b><span id="resTitle"></span></div>
+    <span style="width:42px"></span>
+  </div>
+  <div class="ex-wrap" id="resArea"></div>
+</div>
+
+<script>
+/* ================= โจทย์ในตัว ================= */
+const BUILTIN = [{
+  id: 'builtin-1', builtIn: true, title: 'ชุดฝึก 1 (คละ 4 พาร์ท)', desc: 'โจทย์ตัวอย่าง',
+  situations: [
+  { part: 1, title: 'ห้องอ่านหนังสือ 24 ชั่วโมง',
+    text: 'คณะแห่งหนึ่งเปิดห้องอ่านหนังสือ 24 ชั่วโมงในช่วงสอบ มีทั้งหมด 120 ที่นั่ง นักศึกษาร้องเรียนว่าหาที่นั่งไม่ได้ในช่วง 10.00–22.00 น. เจ้าหน้าที่เดินสำรวจพบว่าในช่วงเวลาดังกล่าว โต๊ะราว 1 ใน 3 มีเพียงกระเป๋าหรือหนังสือวางไว้โดยไม่มีคนนั่งนานกว่า 1 ชั่วโมง ส่วนหลังเที่ยงคืนมีผู้ใช้ไม่ถึง 30 คน โต๊ะครึ่งหนึ่งในห้องไม่มีปลั๊กไฟ คณะไม่มีห้องว่างอื่นให้ใช้ และไม่มีงบจ้างเจ้าหน้าที่เพิ่ม',
+    questions: [
+      { type: 'single',
+        q: 'หากคณะตัดสินใจ “ซื้อโต๊ะพับมาเสริมอีก 30 ที่ในห้องเดิม” ข้อใดต่อไปนี้ หากเป็นจริง จะทำให้แนวทางนี้ไม่สมเหตุสมผลมากที่สุด',
+        choices: ['โต๊ะพับที่เพิ่มมาถูกวางของจองทิ้งไว้ในสัดส่วนเดียวกับโต๊ะเดิม', 'โต๊ะพับที่จะเพิ่มเข้ามาไม่มีปลั๊กไฟให้ชาร์จอุปกรณ์เลย', 'นักศึกษาบางส่วนชอบอ่านหนังสือที่หอพักมากกว่าที่คณะ', 'ทางเดินระหว่างโต๊ะจะแคบลงจนเดินสวนกันได้ลำบาก'],
+        scores: [1, 0.5, 0, 0.25],
+        explain: ['ถ้าโต๊ะใหม่ก็ถูกจองทิ้งเหมือนเดิม ที่นั่งที่ใช้ได้จริงแทบไม่เพิ่ม เงินที่จ่ายไปไม่แก้ต้นเหตุ', 'ทำให้โต๊ะใหม่น่าใช้น้อยลง แต่ยังใช้นั่งได้ จึงลดประโยชน์เพียงบางส่วน ไม่ได้ล้มเหตุผลของแนวทาง', 'ไม่เกี่ยวกับคนที่ต้องการที่นั่งในห้องนี้ จึงไม่ได้หักล้างแนวทาง', 'เป็นผลข้างเคียงด้านความสะดวก แต่ไม่ได้ทำให้เป้าหมายเรื่องที่นั่งล้มเหลว'] },
+      { type: 'multi',
+        q: 'คณะต้องการเข้าใจว่าทำไมนักศึกษาจึงหาที่นั่งไม่ได้ ควรสอบถามหรือเก็บข้อมูลจากแหล่งใดบ้าง (เลือกได้หลายคำตอบ)',
+        choices: ['ผู้ที่วางของจองโต๊ะไว้ ว่าออกไปทำอะไรและหายไปนานเท่าใด', 'บันทึกการแตะบัตรเข้าออกห้อง แยกตามช่วงเวลาของแต่ละวัน', 'ผู้ที่ร้องเรียน ว่ามาถึงกี่โมงและเดินหาที่นั่งนานเท่าใด', 'ฝ่ายอาคาร ว่าห้องนี้ออกแบบไว้ให้รองรับคนได้สูงสุดกี่คน'],
+        answer: [1, 1, 1, 0],
+        explain: ['ควรเลือก: รู้สาเหตุของการจองทิ้ง ซึ่งเป็นปัจจัยหลักที่สำรวจพบ', 'ควรเลือก: เห็นความหนาแน่นจริงในแต่ละช่วงเวลา', 'ควรเลือก: ได้มุมมองของผู้ใช้ที่ได้รับผลกระทบโดยตรง', 'ไม่ควรเลือก: รู้อยู่แล้วว่ามี 120 ที่ และข้อมูลชี้ว่ามีโต๊ะถูกทิ้งว่าง ปัญหาจึงไม่ได้อยู่ที่ความจุ'] },
+      { type: 'pair',
+        q: 'ตามความคิดของคุณ ปัญหาหลักของเหตุการณ์นี้คืออะไร',
+        choices: ['จำนวนที่นั่งน้อยเกินไปเมื่อเทียบกับจำนวนนักศึกษาในช่วงสอบ', 'ที่นั่งถูกจองทิ้งไว้โดยไม่มีคนใช้ ในช่วงที่มีคนต้องการมากที่สุด', 'นักศึกษาไม่รู้ว่าช่วงหลังเที่ยงคืนยังมีที่นั่งว่างอยู่จำนวนมาก', 'ห้องมีโต๊ะที่ไม่มีปลั๊กไฟมากเกินไปจนคนแย่งโต๊ะที่มีปลั๊ก'],
+        q2: 'จากข้อก่อนหน้า คณะควรแก้ปัญหาอย่างไรจึงเหมาะสมที่สุด',
+        choices2: ['แจ้งจำนวนที่นั่งว่างแต่ละช่วงเวลาผ่านกลุ่มไลน์ของคณะ', 'ให้ลงชื่อใช้โต๊ะ และปล่อยโต๊ะให้ผู้อื่นหากไม่อยู่เกิน 30 นาที', 'ขอใช้ห้องเรียนที่ว่างเป็นห้องอ่านหนังสือเสริมในช่วงสอบ', 'เดินสายไฟและติดปลั๊กพ่วงให้ครบทุกโต๊ะในห้อง'],
+        pairs: [[1, 1, 1], [2, 0, 0.5], [3, 3, 0.25]],
+        explain: '“ที่นั่งถูกจองทิ้ง” ↔ “ลงชื่อและปล่อยโต๊ะเมื่อไม่อยู่เกิน 30 นาที” ตรงต้นเหตุที่สุด เพราะโต๊ะ 1 ใน 3 ถูกจองทิ้งในช่วงที่คนแน่น และไม่ต้องใช้งบหรือห้องเพิ่ม\n“ไม่รู้ว่าหลังเที่ยงคืนว่าง” ↔ “แจ้งที่นั่งว่าง” ช่วยกระจายคนได้บ้าง แต่คนต้องการที่นั่งช่วงกลางวัน จึงไม่ได้แก้ต้นเหตุ\n“ปลั๊กไฟ” ↔ “ติดปลั๊กพ่วง” บทความพูดถึงปลั๊ก แต่ไม่ได้ชี้ว่าเป็นสาเหตุที่ที่นั่งไม่พอ\n“ที่นั่งน้อยเกินไป” ขัดกับข้อมูลที่มีโต๊ะถูกทิ้งว่าง และ “ขอใช้ห้องเรียนว่าง” ขัดกับที่บทความระบุว่าไม่มีห้องว่างอื่น จึงได้ 0' },
+      { type: 'multi',
+        q: 'หลังปรับแก้ คณะควรใช้ข้อมูลใดประเมินว่าแนวทางที่ใช้ “สร้างคุณค่าให้ผู้ใช้ได้จริง” (เลือกได้หลายคำตอบ)',
+        choices: ['เวลาเฉลี่ยที่นักศึกษาใช้หาที่นั่งในช่วง 10.00–22.00 น.', 'จำนวนครั้งที่เจ้าหน้าที่เก็บของที่วางจองโต๊ะไว้เกินเวลา', 'สัดส่วนผู้ที่เข้าห้องแล้วได้ที่นั่งภายใน 10 นาที', 'จำนวนชั่วโมงที่ห้องเปิดให้บริการรวมต่อสัปดาห์'],
+        answer: [1, 0, 1, 0],
+        explain: ['ควรเลือก: วัดสิ่งที่ผู้ใช้ได้รับโดยตรง คือหาที่นั่งได้เร็วขึ้น', 'ไม่ควรเลือก: วัดการทำงานของเจ้าหน้าที่ ตัวเลขสูงอาจแปลว่ายังมีการจองทิ้งมากด้วยซ้ำ', 'ควรเลือก: สะท้อนประสบการณ์ของผู้ใช้โดยตรง', 'ไม่ควรเลือก: ห้องเปิด 24 ชั่วโมงอยู่แล้ว ชั่วโมงเปิดไม่บอกว่าผู้ใช้ได้ที่นั่ง'] }
+    ] },
+
+  { part: 2, title: 'ค่ายอาสาบนดอย',
+    text: 'ชมรมอาสาพัฒนาจัดค่ายสร้างห้องสมุดให้โรงเรียนบนดอย มีสมาชิก 60 คน คืนที่สองหลังมื้อเย็นซึ่งจ้างแม่ครัวในหมู่บ้านทำแกงไก่ มีสมาชิก 9 คนปวดท้องและถ่ายเหลว ในจำนวนนี้ 2 คนอาเจียนหลายรอบ น้ำดื่มของค่ายใช้น้ำประปาภูเขาที่บางวันต้มบางวันไม่ได้ต้ม รพ.สต. ที่ใกล้ที่สุดอยู่ห่างไป 12 กิโลเมตรบนถนนลูกรัง คืนนั้นฝนตก ค่ายมีรถกระบะ 1 คัน สมาชิกบางคนโพสต์รูปเพื่อนที่ป่วยลงโซเชียล ผู้ปกครองหลายคนจึงเริ่มโทรมาสอบถาม',
+    questions: [
+      { type: 'multi',
+        q: 'ก่อนตัดสินใจรับมือ ประธานค่ายควรหาข้อมูลใดเพิ่มเติมเป็นอันดับแรก (เลือกได้หลายคำตอบ)',
+        choices: ['อาการของแต่ละคน เช่น มีไข้ อาเจียน หรือขาดน้ำมากเพียงใด', 'ผู้ป่วยทั้ง 9 คนกินแกงไก่หรือดื่มน้ำที่ไม่ได้ต้มเหมือนกันหรือไม่', 'รายชื่อผู้ปกครองที่โทรมาสอบถาม พร้อมเบอร์สำหรับติดต่อกลับ', 'สภาพถนนไป รพ.สต. ในคืนฝนตก และรถที่พร้อมใช้งานได้ทันที'],
+        answer: [1, 1, 0, 1],
+        explain: ['ควรเลือก: ใช้คัดแยกว่าใครต้องส่งต่อก่อน', 'ควรเลือก: ช่วยระบุแหล่งที่น่าจะเป็นสาเหตุ และกันไม่ให้คนอื่นป่วยเพิ่ม', 'ไม่ควรเลือก: สำคัญ แต่ไม่ใช่ข้อมูลที่ต้องใช้ตัดสินใจดูแลผู้ป่วยในตอนนี้', 'ควรเลือก: จำเป็นต่อการวางแผนส่งต่อผู้ป่วยอย่างปลอดภัย'] },
+      { type: 'single',
+        q: 'ในคืนนั้น ประธานค่ายควรทำสิ่งใดก่อนเป็นอันดับแรกจึงเหมาะสมที่สุด',
+        choices: ['พาผู้ป่วยทั้ง 9 คนไป รพ.สต. พร้อมกันด้วยรถกระบะคันเดียว', 'คัดแยกตามอาการ ให้จิบเกลือแร่ และส่งรายที่อาการหนักไปก่อน', 'ให้ทุกคนงดอาหารมื้อถัดไปจนกว่าจะรู้สาเหตุที่แน่ชัด', 'แจ้งผู้ปกครองของผู้ป่วยก่อน แล้วรอคำแนะนำจากอาจารย์ที่ปรึกษา'],
+        scores: [0.5, 1, 0, 0.25],
+        explain: ['ตั้งใจดี แต่การขนคนป่วยจำนวนมากด้วยรถคันเดียวบนถนนลูกรังกลางฝนมีความเสี่ยง และคนอาการเบาไม่จำเป็นต้องไปทุกคน', 'จัดลำดับความเร่งด่วนตามอาการ ดูแลคนอาการเบาในค่าย และใช้รถคันเดียวกับคนที่จำเป็นที่สุด', 'ไม่ช่วยผู้ป่วย และการงดอาหารทั้งค่ายเกินความจำเป็น', 'ควรแจ้งผู้ปกครองก็จริง แต่ไม่ควรทำก่อนดูแลผู้ป่วย โดยเฉพาะคนที่อาเจียนหลายรอบ'] },
+      { type: 'single',
+        q: 'เมื่ออาการของทุกคนทรงตัวแล้ว ผู้ปกครองหลายคนโทรมาขอให้ยุติค่าย ประธานค่ายควรทำอย่างไรต่อ',
+        choices: ['ยุติค่ายในวันรุ่งขึ้นเพื่อให้ผู้ปกครองทุกคนสบายใจ', 'แจ้งอาการ การดูแล และมาตรการต่อจากนี้ในกลุ่มผู้ปกครองพร้อมกัน', 'ขอให้สมาชิกงดโพสต์เรื่องคนป่วยไปจนกว่าค่ายจะจบ', 'ให้อาจารย์ที่ปรึกษาโทรตอบผู้ปกครองที่โทรมาเป็นรายคน'],
+        scores: [0.25, 1, 0, 0.5],
+        explain: ['ตัดสินใจเพราะแรงกดดันทั้งที่ยังไม่ได้ให้ข้อมูล และกระทบโรงเรียนที่รอห้องสมุด', 'ทุกคนได้ข้อมูลชุดเดียวกัน ลดข่าวลือจากโพสต์ และให้ผู้ปกครองตัดสินใจจากข้อเท็จจริง', 'ไม่ได้ตอบความกังวลของผู้ปกครอง และดูเหมือนปกปิดข้อมูล', 'ได้ผลบ้าง แต่ช้า ข้อมูลอาจไม่ตรงกัน และผู้ปกครองที่ยังไม่ได้โทรมาจะไม่ได้ข้อมูล'] },
+      { type: 'single',
+        q: 'สำหรับค่ายครั้งต่อไป มาตรการใดป้องกันปัญหาได้ตรงกับข้อมูลในเหตุการณ์มากที่สุด',
+        choices: ['ให้สมาชิกทุกคนเตรียมยาประจำตัวและยาแก้ท้องเสียมาเอง', 'เปลี่ยนไปจัดค่ายในพื้นที่ที่อยู่ใกล้โรงพยาบาลมากขึ้น', 'สั่งอาหารสำเร็จรูปจากในเมืองแทนการจ้างแม่ครัวในหมู่บ้าน', 'ต้มน้ำดื่มทุกครั้ง และตรวจการเก็บและปรุงอาหารร่วมกับแม่ครัว'],
+        scores: [0.25, 0.25, 0.5, 1],
+        explain: ['เป็นการรับมือหลังป่วย ไม่ได้ป้องกันต้นเหตุ', 'ลดความเสี่ยงตอนส่งต่อผู้ป่วย แต่เปลี่ยนเป้าหมายของค่าย และไม่ได้แก้เรื่องอาหารกับน้ำ', 'ลดความเสี่ยงด้านอาหาร แต่ไม่แก้เรื่องน้ำที่ไม่ได้ต้ม และตัดการมีส่วนร่วมของชุมชน', 'ตรงกับทั้งสองแหล่งเสี่ยงที่พบคือน้ำและอาหาร โดยยังทำงานร่วมกับชุมชน'] }
+    ] },
+
+  { part: 3, title: 'ตัวแทนแข่งตอบปัญหา',
+    text: 'คุณสมัครเป็นตัวแทนโรงเรียนแข่งตอบปัญหาวิทยาศาสตร์ และซ้อมกับครูทุกเย็นมาสองเดือน หนึ่งสัปดาห์ก่อนแข่ง ครูประกาศในกลุ่มไลน์ว่าเลือกเพื่อนที่เพิ่งย้ายมาเทอมนี้เป็นตัวแทน โดยเขียนสั้น ๆ ว่า “ครูเลือกคนที่เหมาะกับรูปแบบการแข่งขันปีนี้” เพื่อนคนนั้นไม่เคยเข้าซ้อมกับกลุ่ม คืนเดียวกัน เพื่อนโพสต์รูปคู่กับครูพร้อมข้อความว่า “ขอบคุณที่ไว้ใจค่ะ” และมีเพื่อนในห้องมาคอมเมนต์ถามคุณว่า “อ้าว ไม่ใช่เธอเหรอ”',
+    questions: [
+      { type: 'single',
+        q: 'ในสถานการณ์นี้ ความรู้สึกใดสะท้อนสภาพอารมณ์ของคุณได้เหมาะสมที่สุด',
+        choices: ['น้อยใจ', 'ผิดหวัง', 'อิจฉา', 'อับอาย'],
+        scores: [0.75, 1, 0.25, 0.5],
+        explain: ['ใกล้เคียง เพราะรู้สึกว่าครูไม่เห็นความสำคัญ แต่แกนของเหตุการณ์คือความคาดหวังที่ไม่เป็นจริง', 'ทุ่มเทซ้อมมาสองเดือนด้วยความคาดหวัง แต่ผลไม่เป็นอย่างที่หวัง จึงตรงที่สุด', 'อาจเกิดขึ้นได้ แต่เป็นอารมณ์รองที่มุ่งไปที่เพื่อน ไม่ใช่แกนของสถานการณ์', 'คอมเมนต์ของเพื่อนอาจทำให้เสียหน้า แต่เป็นผลพ่วง ไม่ใช่ความรู้สึกหลัก'] },
+      { type: 'single',
+        q: 'ปฏิกิริยาใดแสดงถึงการจัดการอารมณ์ของตนเองได้เหมาะสมที่สุด',
+        choices: ['ตอบคอมเมนต์ว่ายินดีกับเพื่อน แล้วหยุดไปซ้อมตั้งแต่พรุ่งนี้', 'ทักไปถามเพื่อนคนนั้นว่าครูบอกเหตุผลอะไรกับเขาบ้าง', 'ขอคุยกับครูส่วนตัวว่าตนยังขาดอะไรสำหรับรูปแบบการแข่งปีนี้', 'เขียนระบายความรู้สึกลงสมุดก่อน แล้วค่อยตัดสินใจว่าจะทำอย่างไร'],
+        scores: [0.25, 0.25, 1, 0.75],
+        explain: ['ดูสุภาพภายนอก แต่เป็นการหนีความรู้สึก และตัดโอกาสพัฒนาตัวเอง', 'ไปหาคำตอบจากคนที่ไม่ได้ตัดสินใจ และอาจทำให้เพื่อนอึดอัด', 'หาข้อเท็จจริงจากผู้ตัดสินใจโดยตรง ในรูปแบบที่ไม่เผชิญหน้าต่อหน้าคนอื่น', 'ช่วยให้อารมณ์สงบก่อนตัดสินใจ ซึ่งดี แต่ยังไม่นำไปสู่การหาข้อเท็จจริง'] },
+      { type: 'multi',
+        q: 'ข้อใดเป็น “ข้อเท็จจริง” จากเหตุการณ์ ไม่ใช่การตีความ (เลือกได้หลายคำตอบ)',
+        choices: ['ครูให้เหตุผลว่าเลือกคนที่เหมาะกับรูปแบบการแข่งขันปีนี้', 'เพื่อนคนนั้นไม่ได้เตรียมตัวสำหรับการแข่งขันครั้งนี้เลย', 'ครูสนิทกับเพื่อนคนนั้นมากกว่า จึงเลือกเขาไปแข่ง', 'เพื่อนโพสต์รูปคู่กับครูในคืนเดียวกับที่ครูประกาศ'],
+        answer: [1, 0, 0, 1],
+        explain: ['ควรเลือก: เป็นข้อความที่ครูเขียนจริง แม้เหตุผลจะยังไม่ละเอียด', 'ไม่ควรเลือก: รู้เพียงว่าเขาไม่เคยเข้าซ้อมกับกลุ่ม เขาอาจเตรียมตัวด้วยวิธีอื่น จึงเป็นการตีความ', 'ไม่ควรเลือก: เดาเหตุผลจากรูปที่โพสต์ ไม่มีข้อมูลรองรับ', 'ควรเลือก: เกิดขึ้นจริงตามเหตุการณ์'] },
+      { type: 'single',
+        q: 'หากคุณเก็บความรู้สึกนี้ไว้โดยไม่จัดการ ผลใดมีแนวโน้มเกิดขึ้นมากที่สุด',
+        choices: ['ตีความการกระทำอื่นของครูในแง่ลบ จนไม่อยากเรียนวิชานั้น', 'ตั้งใจซ้อมหนักขึ้นเพื่อพิสูจน์ตัวเองในการแข่งขันปีหน้า', 'ความรู้สึกค่อย ๆ จางไปเองเมื่อการแข่งขันผ่านพ้นไป', 'มีปากเสียงกับเพื่อนคนนั้นต่อหน้าคนอื่นในห้องเรียน'],
+        scores: [1, 0.25, 0.25, 0.5],
+        explain: ['ความรู้สึกที่ค้างอยู่ทำให้มองเรื่องใหม่ผ่านอคติ และลามไปกระทบการเรียน', 'เป็นไปได้ แต่ไม่ใช่ผลที่มักเกิดจากการเก็บกดโดยไม่จัดการ', 'มองข้ามผลของอารมณ์ที่สะสม', 'อาจเกิดได้ แต่เพื่อนไม่ได้เป็นผู้ตัดสินใจ และต้องมีตัวกระตุ้นเพิ่ม จึงมีแนวโน้มน้อยกว่า'] },
+      { type: 'single',
+        q: 'หลักคิดใดช่วยให้คุณรับมือกับสถานการณ์ลักษณะนี้ได้ดีในระยะยาว',
+        choices: ['ความพยายามที่มากพอจะทำให้ได้รับการยอมรับในที่สุด', 'ควรคาดหวังให้น้อยลง จะได้ไม่ผิดหวังในครั้งต่อไป', 'ผลการคัดเลือกไม่ได้วัดคุณค่าของความพยายามทั้งหมดที่ทำมา', 'ผู้ตัดสินใจย่อมมีเหตุผลบางอย่างที่เรายังไม่รู้เสมอ'],
+        scores: [0.25, 0.25, 1, 0.5],
+        explain: ['ฟังดูดี แต่ผูกคุณค่าของตนไว้กับการยอมรับจากผู้อื่น และอาจผิดหวังซ้ำ', 'ลดความเจ็บได้ชั่วคราว แต่ทำให้ทุ่มเทน้อยลง', 'แยกคุณค่าของตัวเองและสิ่งที่ได้เรียนรู้ออกจากผลการตัดสินครั้งเดียว', 'ช่วยลดการตีความแง่ลบ แต่มองแค่ฝั่งผู้ตัดสิน ไม่ได้ช่วยดูแลความรู้สึกของตัวเอง'] }
+    ] },
+
+  { part: 4, title: 'ข้อเดี่ยว', text: '',
+    questions: [
+      { type: 'single',
+        q: 'คลองหลังตลาดในชุมชนมีกลิ่นเหม็นและมีคราบไขมันลอย เพราะร้านอาหารหลายร้านปล่อยน้ำทิ้งลงคลองโดยตรง เยาวชนในชุมชนควรทำอย่างไรจึงสะท้อนการมีส่วนร่วมที่เหมาะสมที่สุด',
+        choices: ['ถ่ายภาพคราบน้ำเสียส่งให้สื่อ เพื่อให้หน่วยงานรีบเข้ามาแก้ไข', 'ชวนร้านค้าและเทศบาลติดบ่อดักไขมัน แล้วร่วมกันตรวจน้ำทุกเดือน', 'เข้าชื่อขอให้เทศบาลสั่งปิดร้านที่ปล่อยน้ำเสียลงคลอง', 'รวมกลุ่มเพื่อนเก็บขยะและคราบไขมันในคลองทุกวันหยุด'],
+        scores: [0.25, 1, 0.25, 0.5],
+        explain: ['สร้างแรงกดดันได้ แต่ไม่ได้ร่วมแก้ และอาจสร้างความขัดแย้งกับร้านค้า', 'ทุกฝ่ายร่วมแก้ที่ต้นเหตุ และมีการติดตามผล', 'ใช้สิทธิ์ได้ แต่เน้นการลงโทษมากกว่าการร่วมหาทางออก', 'เป็นการมีส่วนร่วมที่ดี แต่แก้ที่ปลายเหตุ เพราะน้ำเสียยังถูกปล่อยลงคลองทุกวัน'] },
+      { type: 'single',
+        q: 'หมู่บ้านบนเขาที่ไฟฟ้าเข้าไม่ถึงได้รับการติดตั้งแผงโซลาร์เซลล์ให้โรงเรียนและบ้านเรือน โครงการนี้สอดคล้องกับเป้าหมายการพัฒนาที่ยั่งยืน (SDGs) ข้อใดโดยตรงที่สุด',
+        choices: ['เป้าหมายที่ 4 การศึกษาที่มีคุณภาพ', 'เป้าหมายที่ 7 พลังงานสะอาดที่เข้าถึงได้', 'เป้าหมายที่ 13 การรับมือการเปลี่ยนแปลงสภาพภูมิอากาศ', 'เป้าหมายที่ 9 อุตสาหกรรม นวัตกรรม และโครงสร้างพื้นฐาน'],
+        scores: [0, 1, 0, 0],
+        explain: ['โรงเรียนได้ประโยชน์ทางอ้อม แต่สาระหลักคือการเข้าถึงพลังงาน', 'ตรงที่สุด เพราะเป็นทั้งการเข้าถึงไฟฟ้าและพลังงานสะอาด', 'ช่วยลดคาร์บอนได้ แต่เป้าหมายหลักของโครงการคือการเข้าถึงไฟฟ้า', 'เกี่ยวกับโครงสร้างพื้นฐาน แต่ไม่ตรงเท่าเป้าหมายด้านพลังงาน'] },
+      { type: 'single',
+        q: 'ประเทศพัฒนาแล้วบางประเทศส่งซากเครื่องใช้ไฟฟ้าและขยะอิเล็กทรอนิกส์มายังประเทศกำลังพัฒนาโดยอ้างว่าเป็นสินค้ามือสอง กรอบความร่วมมือใดเกี่ยวข้องกับการควบคุมเรื่องนี้มากที่สุด',
+        choices: ['อนุสัญญารอตเตอร์ดัม', 'อนุสัญญาสตอกโฮล์ม', 'อนุสัญญาบาเซิล', 'พิธีสารมอนทรีออล'],
+        scores: [0, 0, 1, 0],
+        explain: ['ว่าด้วยการแจ้งข้อมูลล่วงหน้าในการค้าสารเคมีอันตราย ไม่ใช่การขนย้ายของเสีย', 'ว่าด้วยสารมลพิษที่ตกค้างยาวนาน (POPs)', 'ควบคุมการเคลื่อนย้ายของเสียอันตรายข้ามแดนและการกำจัด รวมถึงขยะอิเล็กทรอนิกส์', 'ว่าด้วยสารทำลายชั้นโอโซน'] },
+      { type: 'single',
+        q: 'ช่วงต้นปี ค่า PM2.5 ในตำบลหนึ่งสูงต่อเนื่องจากการเผาฟางและตอซังหลังเก็บเกี่ยว ข้อเสนอใดแก้ที่ต้นเหตุและเกษตรกรมีแนวโน้มทำตามได้มากที่สุด',
+        choices: ['ออกข้อบังคับของตำบลให้ปรับเงินผู้ที่เผาตอซังทุกราย', 'แจกหน้ากากกรองฝุ่นให้ทุกครัวเรือนในช่วงที่มีการเผา', 'รับซื้อฟางและตอซังไปทำปุ๋ยหรืออาหารสัตว์ในราคาที่คุ้มค่าแรง', 'จัดตารางให้แต่ละหมู่บ้านเผาในวันที่อากาศระบายได้ดี'],
+        scores: [0.25, 0.25, 1, 0.5],
+        explain: ['อาจลดการเผาได้ แต่เกษตรกรยังไม่มีทางเลือกอื่น จึงมีแนวโน้มแอบเผาหรือเกิดความขัดแย้ง', 'ป้องกันสุขภาพได้ แต่ไม่แก้ต้นเหตุ', 'ให้ทางเลือกที่มีแรงจูงใจทางเศรษฐกิจแทนการเผา จึงแก้ต้นเหตุและทำได้จริง', 'ลดการสะสมของฝุ่นได้บางส่วน แต่ยังมีการเผาอยู่'] },
+      { type: 'single',
+        q: 'มีคลิปอ้างว่าน้ำดื่มบรรจุขวดยี่ห้อหนึ่งทำให้เป็นมะเร็ง ถูกแชร์ในกลุ่มไลน์ครอบครัวและมีญาติหลายคนเชื่อ ข้อใดเป็นการกระทำของพลเมืองดิจิทัลที่เหมาะสมที่สุด',
+        choices: ['ตรวจสอบกับแหล่งข้อมูลทางการ แล้วส่งผลการตรวจสอบกลับในกลุ่ม', 'เตือนในกลุ่มว่าอย่าเชื่อข่าวที่ไม่มีแหล่งที่มาไม่ว่าเรื่องใด', 'ลบคลิปออกจากเครื่องตนเอง และไม่ตอบอะไรในกลุ่ม', 'ขอให้ผู้ส่งลบคลิป เพราะการแชร์อาจผิดกฎหมายคอมพิวเตอร์'],
+        scores: [1, 0.5, 0.25, 0.25],
+        explain: ['หยุดข้อมูลเท็จด้วยข้อเท็จจริงจากแหล่งที่เชื่อถือได้ เช่น อย. หรือศูนย์ต่อต้านข่าวปลอม', 'หลักการถูก แต่ไม่ได้ให้ข้อมูลที่ช่วยให้ญาติเลิกเชื่อเรื่องนี้', 'ไม่แชร์ต่อเป็นเรื่องดี แต่ปล่อยให้คนในกลุ่มเชื่อข้อมูลผิดต่อไป', 'อาจทำให้ผู้ส่งรู้สึกถูกตำหนิ และไม่ได้แก้ความเข้าใจผิดของคนที่ดูไปแล้ว'] },
+      { type: 'single',
+        q: 'เทศบาลมีแผนสร้างลานกีฬาแห่งใหม่ในชุมชน ข้อใดแสดงการมีส่วนร่วมของประชาชนในระดับที่สูงที่สุด',
+        choices: ['เทศบาลติดประกาศแบบลานกีฬาและงบประมาณให้ประชาชนทราบ', 'เทศบาลเปิดเวทีรับฟังความคิดเห็นต่อแบบที่ร่างไว้แล้ว', 'ตัวแทนชุมชนร่วมกำหนดแบบและงบประมาณกับเทศบาลตั้งแต่ต้น', 'ประชาชนอาสาช่วยทาสีและดูแลลานกีฬาหลังสร้างเสร็จ'],
+        scores: [0, 0.5, 1, 0.25],
+        explain: ['เป็นเพียงการให้ข้อมูลข่าวสาร ซึ่งเป็นระดับต่ำสุด', 'เป็นการปรึกษาหารือ ประชาชนให้ความเห็นได้แต่ไม่ได้ร่วมตัดสินใจ', 'ร่วมวางแผนและร่วมตัดสินใจตั้งแต่ต้น จึงสูงที่สุดในตัวเลือก', 'ร่วมลงมือทำ แต่ไม่มีอำนาจในการตัดสินใจ'] }
+    ] }
+  ]
+}];
+
+/* ================= คำสั่งสำหรับให้ AI สร้างโจทย์ ================= */
+const PROMPT = `ช่วยสร้างข้อสอบแนว TGAT3 (สมรรถนะการทำงาน) แบบใหม่ 1 ชุด ตอบกลับเป็น JSON อย่างเดียว ไม่ต้องมีข้อความอื่น
+
+[โครงสร้างชุด] 20 ข้อ คละ 4 พาร์ท (ถ้าต้องการเฉพาะพาร์ท ให้แก้บรรทัดนี้)
+- Part 1 การสร้างคุณค่าและนวัตกรรม: 1 สถานการณ์ 5 ข้อ = (1) ข้อใดหากเป็นจริงจะทำให้แนวทางที่กำหนดไม่สมเหตุสมผล (single) (2) ควรถาม/เก็บข้อมูลจากใคร (multi) (3)+(4) ข้อคู่ ปัญหาหลัก ↔ แนวทางแก้ (pair) (5) ตัวชี้วัดว่าสร้างคุณค่าให้ผู้ใช้จริง (multi)
+- Part 2 การแก้ไขปัญหาที่ซับซ้อน: 1 สถานการณ์ 4 ข้อ = ข้อมูลที่ต้องหาเพิ่ม (multi) → แก้เฉพาะหน้า → ทำอะไรต่อหลังคุมสถานการณ์ได้ → ป้องกัน/ประเมินผล
+- Part 3 การบริหารจัดการอารมณ์: 1 สถานการณ์ 5 ข้อ = เรียกชื่ออารมณ์ → วิธีจัดการ → แยกข้อเท็จจริงจากการตีความ (multi) → ผลถ้าปล่อยอารมณ์สะสม → หลักคิดระยะยาว
+- Part 4 การเป็นพลเมืองที่มีส่วนร่วม: 6 ข้อเดี่ยว (การมีส่วนร่วม, SDGs, สิ่งแวดล้อม, ข้อตกลงระหว่างประเทศ, พลเมืองดิจิทัล, ประชาธิปไตย)
+
+[กฎสำคัญ: ต้องเดายาก]
+1. ทุกตัวเลือกในข้อเดียวกันยาวใกล้เคียงกัน (ต่างกันไม่เกินราว 20%) สั้น 1 บรรทัด ไม่มีคำอธิบายเหตุผลต่อท้าย
+2. คำตอบที่ถูกต้องห้ามเป็นตัวเลือกที่ยาวที่สุดหรือละเอียดที่สุด
+3. ตัวเลือกผิดต้องดูดีและทำได้จริง เช่น ถูกบางส่วน / ดีแต่ไม่แก้ต้นเหตุ / ขัดกับรายละเอียดเล็ก ๆ ในบทความ / ถูกแต่ผิดลำดับเวลา / ทำเพื่อภาพลักษณ์แทนผู้ใช้
+4. ห้ามมีตัวเลือกที่ผิดศีลธรรมหรือสุดโต่งชัดเจน และห้ามใช้คำอย่าง "ทันที" "ทั้งหมด" "เสมอ" เฉพาะในตัวเลือกผิด
+5. บทความต้องมีรายละเอียดที่ใช้ตัดตัวเลือก เช่น งบจำกัด ข้อมูลที่ขัดกับบางตัวเลือก หรือตัวเลขที่ชี้ต้นเหตุ
+6. กระจายตำแหน่งคำตอบให้ทั่ว ข้อ multi ให้จำนวนข้อที่ควรเลือกต่างกันไป (1–3 ข้อ)
+7. ข้อ single ใช้คะแนนไล่ระดับ 1 / 0.75 / 0.5 / 0.25 / 0 โดยมีคำตอบ 1 คะแนนเพียงตัวเดียว (ข้อความรู้ล้วนใช้ 1 กับ 0)
+8. คำอธิบายเขียนแยกรายตัวเลือก ห้ามอ้างถึงตัวเลือกอื่นด้วย ก ข ค ง หรือหมายเลข เพราะเว็บจะสลับลำดับตัวเลือก (ข้อ pair ให้อ้างด้วยเนื้อความของตัวเลือก)
+9. ใช้สถานการณ์ใหม่ที่สมจริงในบริบทไทย (โรงเรียน มหาวิทยาลัย ชุมชน ที่ทำงาน ฯลฯ)
+
+[รูปแบบ JSON] ดัชนีตัวเลือกเริ่มที่ 0
+{
+  "title": "ชื่อชุด",
+  "desc": "คำอธิบายสั้น ๆ",
+  "situations": [
+    {
+      "part": 1,
+      "title": "ชื่อสถานการณ์",
+      "text": "บทความสถานการณ์",
+      "questions": [
+        { "type": "single", "q": "โจทย์", "choices": ["ก","ข","ค","ง"], "scores": [0, 1, 0.5, 0.25], "explain": ["เหตุผลตัวเลือก 1","...","...","..."] },
+        { "type": "multi", "q": "โจทย์ (เลือกได้หลายคำตอบ)", "choices": ["...","...","...","..."], "answer": [1, 0, 1, 0], "explain": ["ควรเลือก: ...","ไม่ควรเลือก: ...","...","..."] },
+        { "type": "pair", "q": "ปัญหาหลักคืออะไร", "choices": ["...","...","...","..."], "q2": "จากข้อก่อนหน้า ควรแก้อย่างไร", "choices2": ["...","...","...","..."], "pairs": [[1, 2, 1], [0, 3, 0.5]], "explain": "อธิบายแต่ละคู่ และเหตุผลที่คู่อื่นได้ 0" }
+      ]
+    },
+    { "part": 4, "title": "ข้อเดี่ยว", "text": "", "questions": [ ... ] }
+  ]
+}
+pairs คือ [ดัชนีปัญหา, ดัชนีแนวทาง, คะแนน] คู่ที่ไม่อยู่ในรายการได้ 0 และต้องมีคู่ที่ได้ 1 หนึ่งคู่`;
+
+/* ================= พื้นฐาน ================= */
+const LS_SETS = 'tgat_sets', LS_HIST = 'tgat_hist', LS_PROG = 'tgat_prog', LS_OPT = 'tgat_opt';
+const TH = ['ก', 'ข', 'ค', 'ง', 'จ', 'ฉ', 'ช', 'ซ'];
+const PARTS = { 1: 'การสร้างคุณค่าและนวัตกรรม', 2: 'การแก้ไขปัญหาที่ซับซ้อน', 3: 'การบริหารจัดการอารมณ์', 4: 'การเป็นพลเมืองที่มีส่วนร่วม' };
+const $ = id => document.getElementById(id);
+function loadJSON(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
+function saveJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { alert('บันทึกข้อมูลไม่สำเร็จ (พื้นที่อาจเต็ม)'); } }
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmtText = s => esc(s).replace(/\n/g, '<br>');
+const f2 = n => (Math.round(n * 100) / 100).toFixed(2);
+const range = n => Array.from({ length: n }, (_, i) => i);
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function setMsg(id, t, ok) { $(id).textContent = t; $(id).className = 'msg ' + (ok ? 'ok' : 'err'); }
+const fmtTime = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+let userSets = loadJSON(LS_SETS, []);
+let hist = loadJSON(LS_HIST, {});
+let prog = loadJSON(LS_PROG, null);
+let opt = loadJSON(LS_OPT, { shuffle: true });
+let E = null, timerId = null, lastResult = null;
+
+const allSets = () => [...BUILTIN, ...userSets];
+const getSet = id => allSets().find(s => s.id === id);
+function flatten(set) {
+  const items = []; let n = 1;
+  set.situations.forEach((s, si) => s.questions.forEach((q, qi) => {
+    const cnt = q.type === 'pair' ? 2 : 1;
+    items.push({ si, qi, num: n, cnt }); n += cnt;
+  }));
+  return items;
+}
+const totalOf = items => items.reduce((a, b) => a + b.cnt, 0);
+const qOf = (set, it) => set.situations[it.si].questions[it.qi];
+
+/* ================= ให้คะแนน ================= */
+function scoreItem(q, a) {
+  if (a == null) return 0;
+  if (q.type === 'single') return +q.scores[a] || 0;
+  if (q.type === 'multi') {
+    if (!a.some(Boolean)) return 0;
+    const n = q.choices.length;
+    return q.answer.reduce((s, v, i) => s + ((!!v === !!a[i]) ? 1 / n : 0), 0);
+  }
+  if (q.type === 'pair') {
+    if (a[0] == null || a[1] == null) return 0;
+    const p = q.pairs.find(p => p[0] === a[0] && p[1] === a[1]);
+    return p ? 2 * p[2] : 0;
+  }
+  return 0;
+}
+function answered(q, a) {
+  if (a == null) return false;
+  if (q.type === 'multi') return a.some(Boolean);
+  if (q.type === 'pair') return a[0] != null && a[1] != null;
+  return true;
+}
+
+/* ================= หน้าแรก ================= */
+function renderLib() {
+  $('optShuffle').checked = !!opt.shuffle;
+  $('libList').innerHTML = allSets().map(s => {
+    const items = flatten(s), max = totalOf(items);
+    const h = hist[s.id] || [];
+    const best = h.length ? Math.max(...h.map(x => x.score)) : null, last = h[h.length - 1];
+    const parts = [...new Set(s.situations.map(x => x.part).filter(Boolean))].sort().map(p => 'Part ' + p).join(', ');
+    const inProg = prog && prog.setId === s.id;
+    return `<div class="card set">
+      <div class="st">${esc(s.title)}</div>
+      <div class="sd">${max} ข้อ${parts ? ' · ' + parts : ''}${s.desc ? ' · ' + esc(s.desc) : ''}</div>
+      <div class="sd">${h.length ? `ทำแล้ว ${h.length} ครั้ง · ล่าสุด ${f2(last.score)}/${max} · ดีที่สุด ${f2(best)}/${max}` : 'ยังไม่เคยทำ'}</div>
+      ${inProg ? `<div class="row2"><button class="btn btn-main" data-a="resume" data-id="${s.id}">▶️ ทำต่อ (ข้อ ${prog.items[prog.idx].num})</button></div>` : ''}
+      <div class="row2">
+        <button class="btn ${inProg ? 'btn-light' : 'btn-main'}" data-a="start" data-id="${s.id}">${inProg ? '🔄 เริ่มใหม่' : '▶️ เริ่มทำ'}</button>
+        ${h.length ? `<button class="btn btn-light" data-a="review" data-id="${s.id}">📖 เฉลยครั้งล่าสุด</button>` : ''}
+        ${s.builtIn ? '' : `<button class="btn btn-light sm" data-a="del" data-id="${s.id}" aria-label="ลบ">🗑️</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+$('optShuffle').onchange = e => { opt.shuffle = e.target.checked; saveJSON(LS_OPT, opt); };
+$('libList').onclick = e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const id = b.dataset.id, a = b.dataset.a;
+  if (a === 'start') startExam(id);
+  if (a === 'resume') resumeExam();
+  if (a === 'review') {
+    const h = (hist[id] || []).slice(-1)[0], set = getSet(id);
+    if (h && set) showResult({ setId: id, items: flatten(set), perms: h.perms, ans: h.ans, sec: h.sec });
+  }
+  if (a === 'del') {
+    const s = getSet(id);
+    if (!confirm(`ลบชุด "${s.title}" และประวัติคะแนนของชุดนี้?`)) return;
+    userSets = userSets.filter(x => x.id !== id); saveJSON(LS_SETS, userSets);
+    delete hist[id]; saveJSON(LS_HIST, hist);
+    if (prog && prog.setId === id) { prog = null; localStorage.removeItem(LS_PROG); }
+    renderLib();
+  }
+};
+
+function showView(v) {
+  ['homeView', 'examView', 'resultView'].forEach(x => $(x).classList.toggle('hidden', x !== v));
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabbar button').forEach(x => x.classList.toggle('active', x === b));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === b.dataset.tab));
+  window.scrollTo(0, 0);
+  if (b.dataset.tab === 'lib') renderLib();
+});
+
+/* ================= ทำข้อสอบ ================= */
+function startExam(id) {
+  const set = getSet(id); if (!set) return;
+  if (prog && Object.keys(prog.ans || {}).length && !confirm('มีชุดที่ทำค้างอยู่ จะเริ่มใหม่และล้างคำตอบที่ทำค้างไว้ใช่ไหม?')) return;
+  const items = flatten(set);
+  const perms = items.map(it => {
+    const q = qOf(set, it);
+    const p1 = range(q.choices.length), p2 = q.choices2 ? range(q.choices2.length) : null;
+    if (opt.shuffle) { shuffle(p1); if (p2) shuffle(p2); }
+    return [p1, p2];
+  });
+  E = { setId: id, items, perms, ans: {}, idx: 0, elapsed: 0, t0: Date.now() };
+  saveProg(); openExam();
+}
+function resumeExam() {
+  if (!prog || !getSet(prog.setId)) return;
+  E = prog; E.t0 = Date.now(); openExam();
+}
+function openExam() {
+  showView('examView'); $('grid').classList.add('hidden');
+  clearInterval(timerId); timerId = setInterval(drawTimer, 1000); drawTimer();
+  renderQ(true);
+}
+function tick() { const now = Date.now(); E.elapsed += now - E.t0; E.t0 = now; }
+function saveProg() { tick(); prog = E; saveJSON(LS_PROG, E); }
+function drawTimer() { if (E) $('timer').textContent = '⏱ ' + fmtTime(Math.floor((E.elapsed + Date.now() - E.t0) / 1000)); }
+
+function qBlock(num, text, note, choices, perm, isSel, kind, multi) {
+  return `<div class="qb"><div class="qt"><span class="qn">${num}.</span> ${esc(text)}</div>
+    ${note ? `<div class="note">${note}</div>` : ''}
+    <div class="chs">${perm.map((o, pos) => `<button class="ch ${multi ? 'multi' : ''} ${isSel(o) ? 'sel' : ''}" data-k="${kind}" data-c="${o}">
+      <span class="lt">${TH[pos]}</span><span>${esc(choices[o])}</span></button>`).join('')}</div></div>`;
+}
+function renderQ(toTop) {
+  const set = getSet(E.setId), it = E.items[E.idx], s = set.situations[it.si], q = s.questions[it.qi];
+  const [p1, p2] = E.perms[E.idx], a = E.ans[E.idx], total = totalOf(E.items);
+  $('qNum').textContent = (it.cnt === 2 ? `ข้อ ${it.num}–${it.num + 1}` : `ข้อ ${it.num}`) + ` / ${total}`;
+  let h = '';
+  if (s.part) h += `<div class="partlbl">Part ${s.part} · ${PARTS[s.part] || ''}</div>`;
+  if (s.text) h += `<details class="passage" open><summary>📄 ${esc(s.title || 'สถานการณ์')}</summary><div class="ptext">${fmtText(s.text)}</div></details>`;
+  if (q.type === 'pair') {
+    h += qBlock(it.num, q.q, '🔗 ข้อคู่ — คะแนนขึ้นกับความสอดคล้องกับข้อถัดไป', q.choices, p1, o => a && a[0] === o, 'pa');
+    h += qBlock(it.num + 1, q.q2, '🔗 ข้อคู่ — คะแนนขึ้นกับความสอดคล้องกับข้อก่อนหน้า', q.choices2, p2, o => a && a[1] === o, 'pb');
+  } else if (q.type === 'multi') {
+    h += qBlock(it.num, q.q, '☑️ เลือกได้มากกว่า 1 ข้อ', q.choices, p1, o => a && a[o], 'm', true);
+  } else {
+    h += qBlock(it.num, q.q, '', q.choices, p1, o => a === o, 's');
+  }
+  $('qArea').innerHTML = h;
+  $('btnPrev').disabled = E.idx === 0;
+  $('btnNext').textContent = E.idx === E.items.length - 1 ? 'ส่งคำตอบ ✔' : 'ถัดไป ▶';
+  renderGrid();
+  if (toTop) window.scrollTo(0, 0);
+}
+function renderGrid() {
+  const set = getSet(E.setId);
+  $('grid').innerHTML = E.items.map((it, i) => `<button class="gb ${answered(qOf(set, it), E.ans[i]) ? 'done' : ''} ${i === E.idx ? 'cur' : ''}" data-i="${i}">
+    ${it.cnt === 2 ? it.num + '-' + (it.num + 1) : it.num}</button>`).join('');
+}
+$('qArea').onclick = e => {
+  const b = e.target.closest('.ch'); if (!b || !E) return;
+  const set = getSet(E.setId), q = qOf(set, E.items[E.idx]), c = +b.dataset.c, k = b.dataset.k, i = E.idx;
+  if (k === 's') E.ans[i] = E.ans[i] === c ? null : c;
+  else if (k === 'm') { const arr = E.ans[i] || q.choices.map(() => false); arr[c] = !arr[c]; E.ans[i] = arr; }
+  else { const arr = E.ans[i] || [null, null], j = k === 'pa' ? 0 : 1; arr[j] = arr[j] === c ? null : c; E.ans[i] = arr; }
+  saveProg(); renderQ(false);
+};
+$('grid').onclick = e => {
+  const b = e.target.closest('[data-i]'); if (!b) return;
+  E.idx = +b.dataset.i; $('grid').classList.add('hidden'); saveProg(); renderQ(true);
+};
+$('btnGrid').onclick = () => { $('grid').classList.toggle('hidden'); window.scrollTo(0, 0); };
+$('btnPrev').onclick = () => { if (E.idx > 0) { E.idx--; saveProg(); renderQ(true); } };
+$('btnNext').onclick = () => {
+  if (E.idx < E.items.length - 1) { E.idx++; saveProg(); renderQ(true); }
+  else submitExam();
+};
+$('btnExit').onclick = () => {
+  saveProg(); clearInterval(timerId); E = null;
+  showView('homeView'); renderLib();
+};
+function submitExam() {
+  const set = getSet(E.setId);
+  const un = E.items.filter((it, i) => !answered(qOf(set, it), E.ans[i])).length;
+  if (!confirm(un ? `ยังตอบไม่ครบ ${un} ข้อ ส่งคำตอบเลยไหม?` : 'ส่งคำตอบ?')) return;
+  tick(); clearInterval(timerId);
+  const sec = Math.round(E.elapsed / 1000);
+  const score = E.items.reduce((s, it, i) => s + scoreItem(qOf(set, it), E.ans[i]), 0);
+  (hist[E.setId] = hist[E.setId] || []).push({ date: new Date().toISOString(), score, max: totalOf(E.items), sec, ans: E.ans, perms: E.perms });
+  saveJSON(LS_HIST, hist);
+  const R = { setId: E.setId, items: E.items, perms: E.perms, ans: E.ans, sec };
+  prog = null; localStorage.removeItem(LS_PROG); E = null;
+  showResult(R);
+}
+
+/* ================= ผลสอบ / เฉลย ================= */
+const ex = (arr, o) => arr && arr[o] ? `<div class="exp">${esc(arr[o])}</div>` : '';
+function reviewItem(it, s, q, perm, a, sc) {
+  const [p1, p2] = perm, full = sc >= it.cnt - 1e-9;
+  let h = `<div class="rh"><b>${it.cnt === 2 ? `ข้อ ${it.num}–${it.num + 1}` : `ข้อ ${it.num}`}</b>
+    <span class="pill ${full ? 'g' : sc > 0 ? 'y' : 'r'}">${f2(sc)} / ${it.cnt}</span></div>`;
+  if (s.text) h += `<details class="passage sm"><summary>📄 ${esc(s.title || 'สถานการณ์')}</summary><div class="ptext">${fmtText(s.text)}</div></details>`;
+  if (q.type === 'single') {
+    h += `<div class="qt">${esc(q.q)}</div>` + p1.map((o, pos) => {
+      const v = +q.scores[o] || 0, mine = a === o;
+      return `<div class="rc ${v >= 1 ? 'best' : v > 0 ? 'part' : ''} ${mine ? 'mine' : ''}">
+        <div class="rct"><span class="lt">${TH[pos]}</span><span>${esc(q.choices[o])}</span><span class="sc">${f2(v)}</span></div>
+        ${mine ? '<div class="you">← คุณเลือกข้อนี้</div>' : ''}${ex(q.explain, o)}</div>`;
+    }).join('') + (a == null ? '<div class="you err">คุณไม่ได้ตอบข้อนี้</div>' : '');
+  } else if (q.type === 'multi') {
+    h += `<div class="qt">${esc(q.q)}</div><div class="note">☑️ ตำแหน่งละ ${f2(1 / q.choices.length)} คะแนน</div>` + p1.map((o, pos) => {
+      const should = !!q.answer[o], mine = !!(a && a[o]), ok = should === mine;
+      return `<div class="rc ${should ? 'best' : ''}">
+        <div class="rct"><span class="lt">${TH[pos]}</span><span>${esc(q.choices[o])}</span><span class="sc ${ok ? 'okc' : 'noc'}">${ok ? '✓' : '✗'}</span></div>
+        <div class="you">${should ? 'ควรเลือก' : 'ไม่ควรเลือก'} · คุณ${mine ? 'เลือก' : 'ไม่ได้เลือก'}</div>${ex(q.explain, o)}</div>`;
+    }).join('') + (!answered(q, a) ? '<div class="you err">คุณไม่ได้ตอบข้อนี้</div>' : '');
+  } else {
+    const pa = a ? a[0] : null, pb = a ? a[1] : null;
+    const L1 = o => TH[p1.indexOf(o)], L2 = o => TH[p2.indexOf(o)];
+    const best = q.pairs.filter(p => p[2] >= 1);
+    const list = (choices, perm, mine, isBest) => perm.map((o, pos) => `<div class="rc ${isBest(o) ? 'best' : ''} ${mine === o ? 'mine' : ''}">
+      <div class="rct"><span class="lt">${TH[pos]}</span><span>${esc(choices[o])}</span></div>${mine === o ? '<div class="you">← คุณเลือกข้อนี้</div>' : ''}</div>`).join('');
+    h += `<div class="qt">${it.num}. ${esc(q.q)}</div>` + list(q.choices, p1, pa, o => best.some(p => p[0] === o)) +
+      `<div class="qt" style="margin-top:10px">${it.num + 1}. ${esc(q.q2)}</div>` + list(q.choices2, p2, pb, o => best.some(p => p[1] === o)) +
+      `<div class="pairs"><b>คู่ที่ได้คะแนน (คะแนนต่อข้อ)</b><br>${q.pairs.slice().sort((x, y) => y[2] - x[2])
+        .map(p => `ข้อ ${it.num} ${L1(p[0])} ↔ ข้อ ${it.num + 1} ${L2(p[1])} = ${f2(p[2])}`).join('<br>')}<br>คู่อื่น = 0
+        <br><b>คุณเลือก:</b> ${pa == null || pb == null ? 'ตอบไม่ครบ' : `${L1(pa)} ↔ ${L2(pb)}`}</div>` +
+      (q.explain ? `<div class="exp">${fmtText(Array.isArray(q.explain) ? q.explain.join('\n') : q.explain)}</div>` : '');
+  }
+  return `<div class="ri ${full ? 'full' : ''}">${h}</div>`;
+}
+function showResult(R) {
+  const set = getSet(R.setId); if (!set) return;
+  lastResult = R;
+  let total = 0, max = 0; const byPart = {};
+  const rows = R.items.map((it, i) => {
+    const s = set.situations[it.si], q = s.questions[it.qi], sc = scoreItem(q, R.ans[i]);
+    total += sc; max += it.cnt;
+    const p = s.part || 0; byPart[p] = byPart[p] || [0, 0]; byPart[p][0] += sc; byPart[p][1] += it.cnt;
+    return reviewItem(it, s, q, R.perms[i], R.ans[i], sc);
+  });
+  const pct = Math.round(total / max * 100);
+  $('resTitle').textContent = set.title;
+  $('resArea').innerHTML = `<div class="card">
+      <div class="score-big">${f2(total)} / ${max}</div>
+      <p class="small" style="text-align:center">${pct}% · ใช้เวลา ${fmtTime(R.sec || 0)} นาที</p>
+      <table><tr><th>พาร์ท</th><th>คะแนน</th></tr>
+        ${Object.keys(byPart).sort().map(p => `<tr><td>${p > 0 ? `Part ${p} ${PARTS[p] || ''}` : 'ไม่ระบุ'}</td><td>${f2(byPart[p][0])} / ${byPart[p][1]}</td></tr>`).join('')}
+      </table>
+      <div class="row2"><button class="btn btn-main" id="btnAgain">🔄 ทำชุดนี้อีกครั้ง</button></div>
+      <div class="row2"><button class="btn btn-light" id="btnHome">🏠 กลับหน้าแรก</button></div>
+      <hr><label class="optrow"><input type="checkbox" id="onlyWrong"> แสดงเฉพาะข้อที่ยังไม่ได้คะแนนเต็ม</label>
+    </div><div id="revList">${rows.join('')}</div>`;
+  $('btnAgain').onclick = () => startExam(R.setId);
+  $('btnHome').onclick = () => { showView('homeView'); renderLib(); };
+  $('onlyWrong').onchange = e => $('revList').classList.toggle('onlywrong', e.target.checked);
+  showView('resultView');
+}
+$('btnResClose').onclick = () => { showView('homeView'); renderLib(); };
+
+/* ================= นำเข้าชุดข้อสอบ ================= */
+function cleanText(t) { return String(t == null ? '' : t).replace(/^\uFEFF/, '').replace(/\u200B/g, '').trim(); }
+function tryJSON(t) {
+  const cands = [t];
+  const a = t.search(/[\[{]/);
+  if (a >= 0) { const b = t.lastIndexOf(t[a] === '[' ? ']' : '}'); if (b > a) cands.push(t.slice(a, b + 1)); }
+  let err = '';
+  for (const s of cands) for (const v of [s, s.replace(/,\s*([\]}])/g, '$1')]) {
+    try { return { ok: true, v: JSON.parse(v) }; } catch (e) { err = e.message; }
+  }
+  return { ok: false, err };
+}
+function normQ(q) {
+  q = Object.assign({}, q);
+  const n = Array.isArray(q.choices) ? q.choices.length : 0;
+  if (!q.type) q.type = q.pairs ? 'pair' : (Array.isArray(q.answer) ? 'multi' : 'single');
+  q.type = String(q.type).toLowerCase();
+  if (q.type === 'single' && !Array.isArray(q.scores) && q.answer != null && !Array.isArray(q.answer))
+    q.scores = range(n).map(i => i === +q.answer ? 1 : 0);
+  if (q.type === 'multi' && Array.isArray(q.answer)) {
+    const flags = q.answer.length === n && q.answer.every(v => v === 0 || v === 1 || v === true || v === false);
+    if (flags) q.answer = q.answer.map(v => v ? 1 : 0);
+    else { const st = new Set(q.answer.map(Number)); q.answer = range(n).map(i => st.has(i) ? 1 : 0); }
+  }
+  if (Array.isArray(q.scores)) q.scores = q.scores.map(Number);
+  if (Array.isArray(q.pairs)) q.pairs = q.pairs.map(p => Array.isArray(p) ? [+p[0], +p[1], +p[2]] : [+(p.problem ?? p.p), +(p.solution ?? p.s), +(p.score ?? 1)]);
+  return q;
+}
+function normSet(o) {
+  return {
+    id: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    title: String(o.title || 'ชุดใหม่').trim(), desc: o.desc ? String(o.desc) : '',
+    situations: (o.situations || []).map(s => ({
+      part: +s.part || +o.part || 0, title: s.title ? String(s.title) : '', text: s.text ? String(s.text) : '',
+      questions: (s.questions || []).map(normQ)
+    }))
+  };
+}
+function validateSet(set) {
+  const errs = [];
+  if (!set.situations.length) return ['ไม่มี situations'];
+  set.situations.forEach((s, si) => {
+    const L = `สถานการณ์ ${si + 1}`;
+    if (!s.questions.length) return errs.push(`${L}: ไม่มีคำถาม`);
+    s.questions.forEach((q, qi) => {
+      const P = `${L} คำถาม ${qi + 1}`, n = Array.isArray(q.choices) ? q.choices.length : 0;
+      if (!q.q) errs.push(`${P}: ไม่มีโจทย์ (q)`);
+      if (n < 2) errs.push(`${P}: ต้องมีตัวเลือกอย่างน้อย 2 ตัว`);
+      if (n > TH.length) errs.push(`${P}: ตัวเลือกเกิน ${TH.length} ตัว`);
+      if (q.type === 'single') {
+        if (!Array.isArray(q.scores) || q.scores.length !== n) errs.push(`${P}: scores ต้องมีจำนวนเท่ากับตัวเลือก`);
+        else if (!q.scores.some(v => v > 0)) errs.push(`${P}: ไม่มีตัวเลือกที่ได้คะแนน`);
+      } else if (q.type === 'multi') {
+        if (!Array.isArray(q.answer) || q.answer.length !== n) errs.push(`${P}: answer ต้องมีจำนวนเท่ากับตัวเลือก`);
+      } else if (q.type === 'pair') {
+        const n2 = Array.isArray(q.choices2) ? q.choices2.length : 0;
+        if (!q.q2) errs.push(`${P}: ไม่มีโจทย์ข้อคู่ (q2)`);
+        if (n2 < 2) errs.push(`${P}: choices2 ต้องมีอย่างน้อย 2 ตัว`);
+        if (!Array.isArray(q.pairs) || !q.pairs.length) errs.push(`${P}: ไม่มี pairs`);
+        else if (q.pairs.some(p => !(p[0] >= 0 && p[0] < n && p[1] >= 0 && p[1] < n2 && p[2] >= 0)))
+          errs.push(`${P}: ดัชนีใน pairs ไม่ถูกต้อง (ต้องเริ่มที่ 0)`);
+      } else errs.push(`${P}: type ต้องเป็น single, multi หรือ pair`);
+    });
+  });
+  return errs;
+}
+function importText(raw) {
+  const t = cleanText(raw);
+  if (!t) return setMsg('addMsg', 'ยังไม่ได้วางข้อมูล', false);
+  const r = tryJSON(t);
+  if (!r.ok) return setMsg('addMsg', `✗ อ่าน JSON ไม่ได้ (${r.err})\nตรวจว่าคัดลอกมาครบตั้งแต่วงเล็บตัวแรกถึงตัวสุดท้าย`, false);
+  const v = r.v;
+  let list;
+  if (Array.isArray(v) && v.length && v[0] && v[0].questions && !v[0].situations)
+    list = [{ title: 'ชุดใหม่ ' + new Date().toLocaleDateString('th-TH'), situations: v }];
+  else list = Array.isArray(v) ? v : (Array.isArray(v.sets) ? v.sets : [v]);
+  const added = [], errs = [];
+  list.forEach((o, i) => {
+    if (!o || typeof o !== 'object') return errs.push(`ชุดที่ ${i + 1}: รูปแบบไม่ถูกต้อง`);
+    const set = normSet(o), e = validateSet(set);
+    if (e.length) return errs.push(`ชุดที่ ${i + 1} (${set.title}):\n• ` + e.slice(0, 6).join('\n• ') + (e.length > 6 ? `\n• และอีก ${e.length - 6} จุด` : ''));
+    let title = set.title, k = 2;
+    while (allSets().some(s => s.title === title)) title = `${set.title} (${k++})`;
+    set.title = title;
+    userSets.push(set); added.push(`${title} (${totalOf(flatten(set))} ข้อ)`);
+  });
+  if (added.length) { saveJSON(LS_SETS, userSets); $('inJson').value = ''; }
+  setMsg('addMsg', (added.length ? `✔ เพิ่มแล้ว: ${added.join(', ')}` : '') + (errs.length ? `${added.length ? '\n\n' : ''}✗ เพิ่มไม่ได้\n${errs.join('\n\n')}` : ''), !errs.length);
+}
+$('btnImport').onclick = () => importText($('inJson').value);
+$('btnPaste').onclick = async () => {
+  try { const t = await navigator.clipboard.readText(); if (!t) throw 0; $('inJson').value = t; importText(t); }
+  catch (e) { setMsg('addMsg', 'อ่านคลิปบอร์ดไม่ได้ ให้กดค้างในช่องด้านบน เลือก "วาง" แล้วกดเพิ่มแทน', false); }
+};
+$('btnFile').onclick = () => $('fileIn').click();
+$('fileIn').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { importText(r.result); e.target.value = ''; };
+  r.onerror = () => setMsg('addMsg', 'เปิดไฟล์ไม่ได้ ลองคัดลอกข้อความมาวางแทน', false);
+  r.readAsText(f, 'UTF-8');
+};
+
+/* คัดลอกคำสั่งสร้างโจทย์ (ใส่ชื่อสถานการณ์ที่มีแล้ว เพื่อไม่ให้ซ้ำ) */
+$('btnPrompt').onclick = async () => {
+  const used = [...new Set(allSets().flatMap(s => s.situations.map(x => x.title)).filter(t => t && t !== 'ข้อเดี่ยว'))];
+  const text = PROMPT + (used.length ? `\n\nห้ามใช้สถานการณ์ซ้ำหรือคล้ายกับเรื่องต่อไปนี้: ${used.join(', ')}` : '');
+  try { await navigator.clipboard.writeText(text); alert('คัดลอกคำสั่งแล้ว ✔ นำไปวางในแชต AI ได้เลย'); }
+  catch (e) { $('promptBox').value = text; $('promptBox').classList.remove('hidden'); $('promptBox').select(); alert('คัดลอกอัตโนมัติไม่ได้ กดค้างในกล่องข้อความที่ปรากฏ แล้วเลือกคัดลอกทั้งหมด'); }
+};
+
+/* สำรองชุดที่เพิ่มเอง */
+$('btnBackup').onclick = async () => {
+  if (!userSets.length) return alert('ยังไม่มีชุดที่เพิ่มเอง');
+  const name = `tgat-sets-${new Date().toISOString().slice(0, 10)}.json`;
+  const file = new File([JSON.stringify(userSets.map(({ id, ...s }) => s), null, 2)], name, { type: 'application/json' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'สำรองชุดข้อสอบ' }); return; } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+};
+
+/* ================= เริ่มต้น ================= */
+renderLib();
+</script>
+</body>
+</html>
